@@ -58,7 +58,10 @@ void CApp::OnEvent(SDL_Event* Event) {
     {
         int mX,mY = 0;
         SDL_GetMouseState(&mX, &mY);
-        eventManeger::Instance()->FireEvent(eventManeger::Instance()->ON_MOUSE_CLICK);
+        EventMouseClickData clickData;
+        clickData.mX = mX;
+        clickData.mY = mY;
+        eventManeger::Instance()->FireEvent(eventManeger::Instance()->ON_MOUSE_CLICK,&clickData);
         mainGameCtrl::Instance()->OnMouseClick(mX, mY);
     }else if( Event->type == SDL_MOUSEBUTTONUP)
     {
@@ -92,7 +95,6 @@ bool CApp::OnInit() {
     }
     
     mainGameCtrl::Instance()->InitGame(mainRen);
-    //e::Instance()->RigisterEvent();
     return true;
 }
 int CApp::OnExecute() {

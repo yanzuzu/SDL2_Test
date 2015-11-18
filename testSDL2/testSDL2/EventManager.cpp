@@ -9,12 +9,12 @@
 #include "EventManager.hpp"
 
 
-void EventManager::RigisterEvent(std::string eventId,std::function<void()> callBack)
+void EventManager::RigisterEvent(std::string eventId,std::function<void(void*)> callBack)
 {
     dataMaps[eventId].push_back(callBack);
 }
 
-void EventManager::FireEvent(std::string eventId )
+void EventManager::FireEvent(std::string eventId , void *args)
 {
     if( dataMaps.count(eventId) == 0 )
     {
@@ -22,7 +22,7 @@ void EventManager::FireEvent(std::string eventId )
     }
     for( int i = 0; i < dataMaps[eventId].size(); i ++ )
     {
-        std::function<void()> f = dataMaps[eventId][i];
-        f();
+        std::function<void(void*)> f = dataMaps[eventId][i];
+        f(args);
     }
 }

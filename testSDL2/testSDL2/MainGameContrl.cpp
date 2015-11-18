@@ -13,13 +13,17 @@ typedef Singleton<EventManager> eventManeger;
 
 MainGameContrl::MainGameContrl()
 {
-    
+    tiles = new CTile*[ALL_TILE_ROW_NUM];
+    for (int i = 0 ; i < ALL_TILE_ROW_NUM; i ++) {
+        tiles[i] = new CTile[ALL_TILE_COLUMN_NUM];
+    }
 }
 
-//void onEventCallBack()
-//{
-//    printf("onEventCallBack start");
-//}
+void OnMouseClickEventCallBack(void *args)
+{
+    EventMouseClickData data = *( ( EventMouseClickData* )args );
+    printf("onEventCallBack start x = %d , y = %d \n" , data.mX, data.mY);
+}
 
 void MainGameContrl::InitGame(SDL_Renderer* mainRender)
 {
@@ -38,12 +42,11 @@ void MainGameContrl::InitGame(SDL_Renderer* mainRender)
             image->texObj.tex = itemImg;
             image->position.first = INIT_TILE_POS_X + i*55;
             image->position.second = INIT_TILE_POS_Y + j*55;
-            tiles.push_back(*image);
+            tiles[i][j] = *image;
         }
        
     }
-    
-    //eventManeger::Instance()->RigisterEvent(eventManeger::Instance()->ON_MOUSE_CLICK, onEventCallBack);
+    eventManeger::Instance()->RigisterEvent(eventManeger::Instance()->ON_MOUSE_CLICK, OnMouseClickEventCallBack);
     
 }
 
@@ -53,10 +56,10 @@ void MainGameContrl::Render(SDL_Renderer* mainRender)
 {
     texManager::Instance()->renderTexture(bgObj, mainRender, 0, 0);
     
-    std::vector<CTile>::iterator it;
-    for (it=tiles.begin(); it!=tiles.end(); ++it)
-    {
-        texManager::Instance()->renderTexture(&it->texObj, mainRender, it->position.first, it->position.second);
+    for (int i = 0; i < ALL_TILE_COLUMN_NUM; i ++ ) {
+        for ( int j = 0 ;  j < ALL_TILE_ROW_NUM; j ++ ) {
+             texManager::Instance()->renderTexture( &tiles[i][j].texObj, mainRender, tiles[i][j].position.first, tiles[i][j].position.second);
+        }
     }
     
 }
@@ -73,6 +76,7 @@ void MainGameContrl::OnMouseClick(int x, int y)
     if( tile != nullptr)
     {
         printf("mouse click tile!");
+        currentClickTile = tile;
     }
     
 }
@@ -88,17 +92,33 @@ void MainGameContrl::OnMouseUp(int x, int y)
     if( tile != nullptr)
     {
         printf("mouse up tile!");
+        if( currentClickTile != nullptr)
+        {
+            int tmpX = tile->position.first;
+            int TmpY = tile->position.second;
+            
+            tile->position.first = currentClickTile->position.first;
+            tile->position.second = currentClickTile->position.second;
+            
+            currentClickTile->position.first = tmpX;
+            currentClickTile->position.second = TmpY;
+            
+        }
+
     }
 }
 
 CTile* MainGameContrl::GetTouchTile(int mX, int mY)
 {
-    for (int i = 0 ; i < tiles.size(); i ++ ) {
-        CTile tile = tiles[i];
-        if( mX >= tile.position.first && mX <= tile.position.first + tile.texObj.width &&
-           mY >= tile.position.second && mY <= tile.position.second + tile.texObj.height )
-        {
-            return &tiles[i];
+    for (int i = 0; i < ALL_TILE_COLUMN_NUM; i ++ ) {
+        for ( int j = 0 ;  j < ALL_TILE_ROW_NUM; j ++ ) {
+            CTile tile = tiles[i][j];
+            if( mX >= tile.position.first && mX <= tile.position.first + tile.texObj.width &&
+               mY >= tile.position.second && mY <= tile.position.second + tile.texObj.height )
+            {
+                return &tiles[i][j];
+            }
+        
         }
     }
     

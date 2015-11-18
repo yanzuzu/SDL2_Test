@@ -28,11 +28,15 @@ private:
     const int INIT_TILE_POS_X = 10;
     const int INIT_TILE_POS_Y = 250;
     
+    CTile *currentClickTile;
+    CTile *exchangeTile;
+    
     CTile* GetTouchTile(int mX, int mY);
+    
 public:
     MainGameContrl();
     CTextureObj *bgObj;
-    std::vector<CTile> tiles;
+    CTile** tiles;
 public:
     void InitGame(SDL_Renderer* mainRender);
     void Render(SDL_Renderer* mainRender);

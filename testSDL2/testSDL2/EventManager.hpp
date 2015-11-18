@@ -10,10 +10,18 @@
 #define EventManager_hpp
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <functional>
 #include <vector>
 #include <map>
 #include <string>
+
+class EventMouseClickData
+{
+public:
+    int mX;
+    int mY;
+};
 
 class EventManager
 {
@@ -25,9 +33,9 @@ public:
     
     const std::string ON_MOUSE_CLICK = "ON_MOUSE_CLICK";
     
-    std::map<std::string, std::vector<std::function<void()>>> dataMaps;
-    void RigisterEvent(std::string,std::function<void()>);
-    void FireEvent(std::string);
+    std::map<std::string, std::vector<std::function<void(void*)>>> dataMaps;
+    void RigisterEvent(std::string,std::function<void(void*)>);
+    void FireEvent(std::string, void*);
     
 };
 #endif /* EventManager_hpp */
