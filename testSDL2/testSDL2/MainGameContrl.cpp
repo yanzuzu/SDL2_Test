@@ -13,16 +13,74 @@ typedef Singleton<EventManager> eventManeger;
 
 MainGameContrl::MainGameContrl()
 {
-    tiles = new CTile*[ALL_TILE_ROW_NUM];
-    for (int i = 0 ; i < ALL_TILE_ROW_NUM; i ++) {
-        tiles[i] = new CTile[ALL_TILE_COLUMN_NUM];
-    }
 }
+
+MainGameContrl::~MainGameContrl()
+{
+}
+
 
 void OnMouseClickEventCallBack(void *args)
 {
     EventMouseClickData data = *( ( EventMouseClickData* )args );
     printf("onEventCallBack start x = %d , y = %d \n" , data.mX, data.mY);
+}
+
+void MainGameContrl::CaculateConnect()
+{
+    for (int i = 0 ; i < ALL_TILE_COLUMN_NUM; i ++ ) {
+        for (int j = 0 ; j < ALL_TILE_ROW_NUM; j ++) {
+            CheckConnect(i,j, i + 1 , ALL_TILE_COLUMN_NUM , j , j + 1 );
+            CheckConnect(i,j, i , i + 1 , j + 1 , ALL_TILE_ROW_NUM );
+        }
+    }
+}
+
+void MainGameContrl::CheckConnect(int pX, int pY, int pFromX, int pEndX , int pFromY, int pEndY)
+{
+    CTile *origiTile = GetTileByPos(pX, pY);
+    std::vector<CTile*> connectTiles;
+    bool isDisConnect = false;
+    for( int i = pFromX ; i < pEndX  ; i ++ )
+    {
+        if (isDisConnect) {
+            break;
+        }
+        for (int j = pFromY; j < pEndY; j ++ ) {
+            CTile *tile = GetTileByPos(i,j);
+            if( tile == nullptr || origiTile->isEliminate == true )
+            {
+                continue;
+            }
+            if( tile->GetType() == origiTile ->GetType() && tile->isEliminate == false )
+            {
+                connectTiles.push_back(tile);
+            }else
+            {
+                isDisConnect = true;
+                break;
+            }
+
+        }
+    }
+    //printf("connect tile size = %d \n", connectTiles.size());
+    if( connectTiles.size() >= 2 )
+    {
+        for (int i = 0 ; i < connectTiles.size(); i ++) {
+            connectTiles[i]->isEliminate = true;
+        }
+        origiTile->isEliminate = true;
+    }
+    
+}
+
+CTile* MainGameContrl::GetTileByPos(int pX, int pY)
+{
+    int Idx =  pX *ALL_TILE_ROW_NUM + pY;
+    if (Idx >= tiles.size()) {
+        return nullptr;
+    }
+    return &tiles[Idx];
 }
 
 void MainGameContrl::InitGame(SDL_Renderer* mainRender)
@@ -36,15 +94,14 @@ void MainGameContrl::InitGame(SDL_Renderer* mainRender)
     for( int i = 0 ; i < ALL_TILE_COLUMN_NUM ; i ++ )
     {
         for (int j = 0; j < ALL_TILE_ROW_NUM; j ++) {
-            int randFruitIdx = rand() % 3 + 1;
-            CTile *image = new CTile();
-            SDL_Texture *itemImg = texManager::Instance()->LoadImage("fruit_" + std::to_string(randFruitIdx) + ".png", mainRender);
-            image->texObj.tex = itemImg;
-            image->position.first = INIT_TILE_POS_X + i*55;
-            image->position.second = INIT_TILE_POS_Y + j*55;
-            tiles[i][j] = *image;
+            CTile tile;
+            int randFruitIdx = rand() % 3;
+            tile.SetRender(mainRender);
+            tile.SetType((TileType)randFruitIdx);
+            tile.position.first = INIT_TILE_POS_X + i*55;
+            tile.position.second = INIT_TILE_POS_Y + j*55;
+            tiles.push_back(tile);
         }
-       
     }
     eventManeger::Instance()->RigisterEvent(eventManeger::Instance()->ON_MOUSE_CLICK, OnMouseClickEventCallBack);
     
@@ -55,13 +112,16 @@ void MainGameContrl::InitGame(SDL_Renderer* mainRender)
 void MainGameContrl::Render(SDL_Renderer* mainRender)
 {
     texManager::Instance()->renderTexture(bgObj, mainRender, 0, 0);
-    
-    for (int i = 0; i < ALL_TILE_COLUMN_NUM; i ++ ) {
-        for ( int j = 0 ;  j < ALL_TILE_ROW_NUM; j ++ ) {
-             texManager::Instance()->renderTexture( &tiles[i][j].texObj, mainRender, tiles[i][j].position.first, tiles[i][j].position.second);
+    std::vector<CTile>::iterator it;
+    for (it=tiles.begin(); it!=tiles.end(); ++it)
+    {
+        if( it->isEliminate == true )
+        {
+            continue;
         }
+        texManager::Instance()->renderTexture( &it->texObj, mainRender, it->position.first, it->position.second);
     }
-    
+
 }
 
 void MainGameContrl::Loop()
@@ -104,24 +164,21 @@ void MainGameContrl::OnMouseUp(int x, int y)
             currentClickTile->position.second = TmpY;
             
         }
-
+        CaculateConnect();
     }
 }
 
 CTile* MainGameContrl::GetTouchTile(int mX, int mY)
 {
-    for (int i = 0; i < ALL_TILE_COLUMN_NUM; i ++ ) {
-        for ( int j = 0 ;  j < ALL_TILE_ROW_NUM; j ++ ) {
-            CTile tile = tiles[i][j];
+    for (int i = 0; i < tiles.size(); i ++ ) {
+            CTile tile = tiles[i];
             if( mX >= tile.position.first && mX <= tile.position.first + tile.texObj.width &&
-               mY >= tile.position.second && mY <= tile.position.second + tile.texObj.height )
+                       mY >= tile.position.second && mY <= tile.position.second + tile.texObj.height )
             {
-                return &tiles[i][j];
+                return &tiles[i];
             }
-        
-        }
     }
-    
+
     return nullptr;
 }
 

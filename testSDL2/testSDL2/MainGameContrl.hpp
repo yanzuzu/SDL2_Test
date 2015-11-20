@@ -32,11 +32,16 @@ private:
     CTile *exchangeTile;
     
     CTile* GetTouchTile(int mX, int mY);
+    void CaculateConnect();
+    CTile* GetTileByPos(int pX, int pY);
+    void CheckConnect(int pX, int pY, int pFromX, int pEndX , int pFromY, int pEndY);
     
 public:
     MainGameContrl();
+    ~MainGameContrl();
     CTextureObj *bgObj;
-    CTile** tiles;
+    //CTile** tiles;
+    std::vector<CTile> tiles;
 public:
     void InitGame(SDL_Renderer* mainRender);
     void Render(SDL_Renderer* mainRender);

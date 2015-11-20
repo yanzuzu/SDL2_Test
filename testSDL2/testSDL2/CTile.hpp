@@ -11,13 +11,31 @@
 
 #include <stdio.h>
 #include "CTextureObj.hpp"
+#include "Singleton.h"
+#include "CTextureManager.hpp"
 #include <utility>
+#include <string>
 
+enum TileType
+{
+    Yellow = 0,
+    Red,
+    Green,
+};
 class CTile
 {
+private:
+    TileType type;
+    SDL_Renderer *mainRender;
 public:
     CTile();
 public:
+    void SetType(TileType pType);
+    TileType GetType();
+    
+    void SetRender(SDL_Renderer*);
+    
+    bool isEliminate;
     CTextureObj texObj;
     std::pair<int, int> position;
 };
